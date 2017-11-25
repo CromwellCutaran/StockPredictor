@@ -1,46 +1,56 @@
-
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Mapper.Context;
-
-//import com.sun.jersey.core.spi.scanning.Scanner;
-
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.LongWritable;
-import java.io.IOException;
-import java.util.Scanner;
 
-public class MRmapper  extends Mapper <LongWritable,Text,Text,Text>  {
-	
+import java.io.IOException;
+import java.util.StringTokenizer;
+
+public class MRmapper  extends Mapper <LongWritable,Text,Text,Text> {
     static String IFS=",";
     static String OFS=",";
-    static int NF=11;
-    static int badRecordCounter =0;
     
-    public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+    public void map(LongWritable key, Text value, Context context) 
+                    throws IOException, InterruptedException {
         
-	
-	/*Open: The price at the beginning of the trading day
-	High: The highest price the stock reached during the day
-	Low: The lowest price reached during the day
-	Close: The final price*/
-    	Scanner input = new Scanner(value.toString().trim());  //instantiate line
-	String line = input.nextLine().trim();         //Read next line  ... trim: removes trailing spaces
- 	String lineArray[] = line.split(",");
- 	
- 	String date = lineArray[0].trim();
- 	String open = lineArray[1].trim();
- 	String high = lineArray[2].trim();
- 	String low = lineArray[3].trim();
- 	String close = lineArray[4].trim();
- 	String volume = lineArray[5].trim();
- 	String name = lineArray[6].trim();
- 	
- 	String valueForKey = date + " " + open + " " + high + " " + low  + " " + close + " " + volume;
- 	
- 	context.write(new Text(name), new Text(valueForKey));
- 	
+        /** stocks.csv
+        date
+        open
+        high
+        low
+        close
+        volume
+        name
+        */
     	
+    	/*Open: The price at the beginning of the trading day
+    	High: The highest price the stock reached during the day
+    	Low: The lowest price reached during the day
+    	Close: The final price*/
     	
-    }
+    	//get job name
+    	String company = context.getJobName();
+        
+        // TODO 1: remove schema line
+    	//the key is the bite offset into the file, so schema line key = 0
+    	if(key.get() == 0){
+    		return;
+    	}
+    	
+    	// TODO 2: convert value to string
+    	String lineString = value.toString();
+    	String[] lineArray = lineString.split(IFS);
 
+        // TODO 4: pull out fields of interest:
+        String date = lineArray[0];
+        String open = lineArray[1];
+        String high = lineArray[2];
+        String low = lineArray[3];
+        String close = lineArray[4];
+        String volume = lineArray[5];
+        String name = lineArray[6];
+        
+     	String valueForKey = date + OFS + open + OFS + high + OFS + low  + OFS + close + OFS + volume;
+        
+        context.write(new Text(name), new Text(valueForKey));
+    }
 }
