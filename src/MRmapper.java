@@ -42,7 +42,7 @@ public class MRmapper  extends Mapper <LongWritable,Text,Text,Text> {
 
         // TODO 4: pull out fields of interest:
         String date = lineArray[0];
-        String[] dateArray = date.split("/");
+        String[] dateArray = date.split("-");
         String open = lineArray[1];
         String high = lineArray[2];
         String low = lineArray[3];
@@ -50,11 +50,12 @@ public class MRmapper  extends Mapper <LongWritable,Text,Text,Text> {
         String volume = lineArray[5];
         String name = lineArray[6];
         
-        //check if user company query is same as name in projection file
-        if(name == company)
-        {
-        		String valueForKey = date + OFS + open + OFS + high + OFS + low  + OFS + close + OFS + volume + OFS + name;
-        		context.write(new Text(dateArray[2]), new Text(valueForKey));
+        //check if user company query matches
+        if(name != company){
+        		return;
         }
+        
+		String valueForKey = date + OFS + open + OFS + high + OFS + low  + OFS + close + OFS + volume;
+		context.write(new Text(dateArray[0]), new Text(valueForKey));
     }
 }
