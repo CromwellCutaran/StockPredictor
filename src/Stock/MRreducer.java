@@ -117,9 +117,9 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 	    			
 	    			// write currentOBV to text file
 	    			
-	    			String dateSet = date.replace("-", "").substring(4);
+	    			//String dateSet = date.replace("-", "").substring(4);
 	    			   
-	    	        context.write(new Text(close + " ") ,new Text(dateSet));    
+	    	        context.write(new Text(currentOBV + " ") ,new Text(date));    
 
 	    			
 	    		}	

@@ -249,7 +249,7 @@ public class LineChartDemo6 extends ApplicationFrame {
 
 	        NumberAxis numberAxis = (NumberAxis)plot.getRangeAxis();        
 	        numberAxis.setRange(-10000000,10000000);   
-	        data.setVerticalTickLabels(true);
+
 	        frame.pack();
 	        frame.setVisible(true);
 	    }  
