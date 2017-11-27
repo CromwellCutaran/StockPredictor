@@ -57,8 +57,7 @@ public class LineChartDemo6 extends ApplicationFrame {
         final XYSeries series1 = new XYSeries("Second");
 
     	// Read the price and the living area
-        int i = 0;
-    	while (i < 10) {
+    	while (scanner.hasNextLine()) {
     		if (scanner.hasNextFloat()) {
     			double livingArea = scanner.nextDouble();
     			String price = scanner.next();
@@ -67,8 +66,7 @@ public class LineChartDemo6 extends ApplicationFrame {
     			}
     			double p = Double.parseDouble(price);
     			System.out.println(livingArea + " " +  p);
-    			series1.add(livingArea, p);
-    			i++;
+    			series1.add(p, livingArea);
     		}
     	}
     	scanner.close();
