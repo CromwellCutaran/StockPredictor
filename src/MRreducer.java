@@ -54,12 +54,10 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 		   String compositeString;
 		   String[] compositeStringArray;
 		   double total = 0, first = 0, last = 0, count = 0;
+		   double previousClose = 0, previousOBV = 0, currentOBV = 0;
 		   
-//		   XYDataset inputData; 
-//		   
-//			XYSeriesCollection dataset = new XYSeriesCollection();  // create dataset 
-//			XYSeries series = new XYSeries("Prices");    //type
-		   
+		   boolean start = true;
+
 		   for(Text value: values)
 	       {
 			   
@@ -70,8 +68,6 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 	    		compositeString = value.toString();
 	    		compositeStringArray = compositeString.split(IFS);
 
-	    		
-//	    		2017-07-31,,201.66,,201.17,1833625.0,MMM
 	    		try {
 		    		date = compositeStringArray[0];
 		    		open = Double.parseDouble(compositeStringArray[1]);
@@ -84,9 +80,7 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 	    		if (key.toString().equals("2017")) {
 			   		System.out.println("After try-catch: " + value);
 			   	}
-	    		
-//	    		context.write(key, new Text(date + OFS + open + OFS + close + OFS + volume));
-//	    		
+
 	    		total += (close-open)/open; // add daily change to total
 	    		count++; // increase counter
 	    		
@@ -103,29 +97,38 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 	    			last = close;
 	    		}
 	    		
-	    		if (key.toString().equals("2017")) {
-			   		System.out.println("After elif block: " + value);
-			   	}
-	    		
 	    		/*
 	    		 * calculate the OBV -- momentum indicator that uses volume
 	    		 * flow to predict changes in stock price
-	    		 */
-	    			double dateSet = Double.parseDouble(date.replace("-", "")); 
-//				series.add(close, dateSet);
+	    		 */	    		
+	    		if (start) {
+	    			start = false;
+	    			previousClose = close;
+	    		} else {
+	    			if (close > previousClose) {
+	    				currentOBV = previousOBV + volume;
+	    			} else if (close < previousClose) {
+	    				currentOBV = previousOBV - volume;	    			
+	    			} else if (close == previousClose) {
+	    				currentOBV = previousOBV;
+	    			}
 	    			
-//	    		context.write(new Text("total, count, first, last, name"), new Text(Double.toString(total) + ", " + count + ", " + first + ", " + last + ", " + name));
+	    			// test OBV calculation
+	    			System.out.println("volume: " + volume + "\n" +
+ 						   "previousClose: " + previousClose + "\n" +
+ 						   "close: " + close + "\n" +
+ 						   "previousOBV: " + previousOBV + "\n" +
+ 						   "currentOBV: " + currentOBV + "\n");
+	    			
+	    			previousClose = close;
+	    			previousOBV = currentOBV;
+	    			
+	    			// write currentOBV to text file
+	    			
+	    		}	    				
+	    		
 	       }
-//		   dataset.addSeries(series);
-//		  inputData = dataset;
-//		   JFreeLineChart demo = new JFreeLineChart(inputData);
-//			demo.pack();
-//			RefineryUtilities.centerFrameOnScreen(demo);
-//			demo.setVisible(true);
-			
-//		   DecimalFormat df = new DecimalFormat("##.##%");
-		  
-		   
+
 		   //calculate average daily growth rate (present-past)/past
 		   double dailyAvg = total/count;
 		   String dailyAvgFormatted = Double.toString(dailyAvg);
@@ -133,13 +136,6 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 		   //calculate growth rate for the year
 		   double growthRate = (last-first)/first;
 		   String growthRateFormatted = Double.toString(growthRate);
-		   
-		   if (key.toString().equals("2017")) {
-		   		for (Text value:values) {
-		   			System.out.println(value.toString());
-		   		}		   		
-		   	}
-		   
 		   
 		   Text keyTextHeader = new Text("YEAR: ");		   
 		   context.write(keyTextHeader, key);
@@ -153,10 +149,4 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 		   Text keyTextFooter = new Text("");
 		   context.write(keyTextFooter, new Text(""));
 	   }
-	   
-//	   @Override
-//	   protected void cleanup(Context context) {
-//		   Text keyTextTest = new Text("KEYS: ");
-//		   context.write(keyTextTest, context.getCurrentKey());
-//	   }
 }
