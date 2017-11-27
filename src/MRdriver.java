@@ -1,3 +1,4 @@
+package Stock;
 
 import java.util.Scanner;
 import org.apache.hadoop.conf.Configured;
@@ -11,8 +12,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
-
-
 
 public class MRdriver extends Configured implements Tool {
     @SuppressWarnings("deprecation")

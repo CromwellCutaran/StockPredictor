@@ -1,3 +1,5 @@
+package Stock;
+
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.LongWritable;
@@ -43,6 +45,7 @@ public class MRmapper  extends Mapper <LongWritable,Text,Text,Text> {
         // TODO 4: pull out fields of interest:
         String date = lineArray[0];
         String[] dateArray = date.split("-");
+        String year = dateArray[0];
         String open = lineArray[1];
         String high = lineArray[2];
         String low = lineArray[3];
@@ -51,11 +54,20 @@ public class MRmapper  extends Mapper <LongWritable,Text,Text,Text> {
         String name = lineArray[6];
         
         //check if user company query matches
-        if(name != company){
+        if (!name.equals(company)) {
         		return;
         }
         
-		String valueForKey = date + OFS + open + OFS + high + OFS + low  + OFS + close + OFS + volume;
-		context.write(new Text(dateArray[0]), new Text(valueForKey));
+		String valueForKey = date + OFS + open + OFS + high + OFS + low  + OFS + close + OFS + volume + OFS + name;
+		
+		System.out.println(year);
+		
+		Text yearText = new Text(year);
+		context.write(yearText, new Text(valueForKey));
     }
+    
+//    @Override
+//    protected void cleanup(Context context) {
+//    	context.getCurrentKey();
+//    }
 }
