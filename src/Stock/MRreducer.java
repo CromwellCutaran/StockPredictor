@@ -2,12 +2,8 @@ package Stock;
 
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.io.Text;
-
-import java.awt.Color;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.Reducer.Context;
@@ -15,13 +11,16 @@ import org.apache.hadoop.io.Text;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 
 
 public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 
 	   public static String IFS=",";
 	   public static String OFS=",";
+	   public static String divider = "*****";
 	   public int i = 1;
+	   private ArrayList<ArrayList<Object>> allData = new ArrayList<ArrayList<Object>>();
 	   
 	   public void reduce(Text key, Iterable<Text> values, Context context) 
 			   throws IOException, InterruptedException {		   		   			   
@@ -33,14 +32,11 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 	         * low
 	         * close
 	         * volume
-	        */
-		   //file writer 
-		 
-		   FileWriter pw = new FileWriter("data" + i +".txt");  
-		   i++;
+	         * name
+	        */		    		 		  
+		   		  
 		   //initialize variables 
 		   String date = null;
-		   String name;
 		   double open = 0, close = 0, volume = 0;
 		   
 		   String compositeString;
@@ -48,15 +44,11 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 		   double total = 0, first = 0, last = 0, count = 0;
 		   double previousClose = 0, previousOBV = 0, currentOBV = 0;
 		   
-		   boolean start = true;
+		   // marker for calculating OBVs
+		   boolean start = true;		   
 
 		   for(Text value: values)
 	       {
-			   
-			   if (key.toString().equals("2017")) {
-			   		System.out.println("Start of for loop: " + value);
-			   	}
-			   
 	    		compositeString = value.toString();
 	    		compositeStringArray = compositeString.split(IFS);
 
@@ -65,20 +57,16 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 		    		open = Double.parseDouble(compositeStringArray[1]);
 		    		close = Double.parseDouble(compositeStringArray[4]);
 		    		volume = Double.parseDouble(compositeStringArray[5]);
-		    		name = compositeStringArray[6];
 	    		} catch (Exception e) {
 	    			continue;
 	    		}
-	    		if (key.toString().equals("2017")) {
-			   		System.out.println("After try-catch: " + value);
-			   	}
+	    		
+	    		// increment total with daily change
+	    		total += (close-open)/open;
+	    		// increment day counter
+	    		count++; 
 
-	    		total += (close-open)/open; // add daily change to total
-	    		count++; // increase counter
-	    		
-	    		//set first or last close values that year, 01-02 & 12-31
-	    		//for later calculating growth rate that year
-	    		
+	    		// parse dates to determine first and last closing price of every year
 	    		if (date.contains("2012-08-")) {
 	    			first = close;
 	    		} else if (date.contains("01-")) {
@@ -89,10 +77,8 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 	    			last = close;
 	    		}
 	    		
-	    		/*
-	    		 * calculate the OBV -- momentum indicator that uses volume
-	    		 * flow to predict changes in stock price
-	    		 */	    		
+	    		// calculate the OBV -- momentum indicator that uses
+	    		// volume flow to predict changes in stock price	    			    		
 	    		if (start) {
 	    			start = false;
 	    			previousClose = close;
@@ -105,46 +91,63 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 	    				currentOBV = previousOBV;
 	    			}
 	    			
-	    			// test OBV calculation
-	    			System.out.println("volume: " + volume + "\n" +
- 						   "previousClose: " + previousClose + "\n" +
- 						   "close: " + close + "\n" +
- 						   "previousOBV: " + previousOBV + "\n" +
- 						   "currentOBV: " + currentOBV + "\n");
 	    			
 	    			previousClose = close;
 	    			previousOBV = currentOBV;
 	    			
-	    			// write currentOBV to text file
-	    			
-	    			//String dateSet = date.replace("-", "").substring(4);
-	    			   
-	    	        context.write(new Text(currentOBV + " ") ,new Text(date));    
-
-	    			
-	    		}	
-	    		
-	    		
+	    			context.write(new Text(currentOBV + " "), new Text(date));    	    		
+	    		}
 	       }
+		   
+		   //calculate average daily growth rate (present-past)/past
+		   double dailyAvg = total/count;
+		   
+		   //calculate growth rate over the entire year
+		   double growthYear = (last-first)/first;
+	   		   
+		   // data = [key, dailyAvgFormatted, growthRateFormatted, ""]
+		   ArrayList<Object> data = new ArrayList<>();
+		   data.add(dailyAvg);
+		   data.add(growthYear);
+		   data.add(new Text(""));
+		   
+		   allData.add(data);
 
-//		   //calculate average daily growth rate (present-past)/past
-//		   double dailyAvg = total/count;
-//		   String dailyAvgFormatted = Double.toString(dailyAvg);
-//		   
-//		   //calculate growth rate for the year
-//		   double growthRate = (last-first)/first;
-//		   String growthRateFormatted = Double.toString(growthRate);
-//		   
-//		   Text keyTextHeader = new Text("YEAR: ");		   
-//		   context.write(keyTextHeader, key);
-//		   
-//		   Text keyTextGrowthDaily = new Text("Daily Growth Rate: ");
-//		   context.write(keyTextGrowthDaily, new Text(dailyAvgFormatted));
-//		   
-//		   Text keyTextGrowthYear = new Text("Growth Rate for Year: ");
-//		   context.write(keyTextGrowthYear, new Text(growthRateFormatted));		
-//		   
-//		   Text keyTextFooter = new Text("");
-//		   context.write(keyTextFooter, new Text(""));
+		   // if at last key, printAverageData()
+		   if (key.toString().equals("2017")) {
+			   printAverageData(allData, context);
+		   }
+	   }
+	   
+	   public void printAverageData (ArrayList<ArrayList<Object>> allData, Context context) throws IOException, InterruptedException {
+		   Text keyTextHeader = new Text("YEAR: ");
+		   Text keyTextGrowthDaily = new Text("Daily Growth Rate: ");
+		   Text keyTextGrowthYear = new Text("Growth Rate for Year: ");
+		   Text keyTextFooter = new Text("");
+		   
+		   DecimalFormat df = new DecimalFormat("##.###%");
+		   int startYear = 2012;		   
+		   
+		   // insert divider and begin writing average data
+		   Text keyTextDivider = new Text("*****");
+		   context.write(keyTextDivider, new Text(""));		   
+		   Text keyTextCompany = new Text("Growth rates for " + context.getJobName() +
+				   						  "\n----------------------");
+		   context.write(keyTextCompany, new Text(""));
+		   		   		   
+		   for (ArrayList<Object> data : allData) {
+			   double dailyAvg = (double) data.get(0);
+			   double growthRate = (double) data.get(1);
+			   Text valueTextGrowthDaily = new Text(Double.toString(dailyAvg) + "  (" + df.format(dailyAvg) + ")");
+			   Text valueTextGrowthYear = new Text(Double.toString(growthRate) + "  (" + df.format(growthRate) + ")");
+			   Text footer = (Text) data.get(2);			   
+			   
+			   context.write(keyTextHeader, new Text(startYear + ""));			   			   
+			   context.write(keyTextGrowthDaily, valueTextGrowthDaily);			   
+			   context.write(keyTextGrowthYear, valueTextGrowthYear);			   
+			   context.write(keyTextFooter, footer);
+			   
+			   startYear++;
+		   }		   
 	   }
 }

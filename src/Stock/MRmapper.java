@@ -65,9 +65,4 @@ public class MRmapper  extends Mapper <LongWritable,Text,Text,Text> {
 		Text yearText = new Text(year);
 		context.write(yearText, new Text(valueForKey));
     }
-    
-//    @Override
-//    protected void cleanup(Context context) {
-//    	context.getCurrentKey();
-//    }
 }
