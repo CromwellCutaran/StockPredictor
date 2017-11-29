@@ -25,11 +25,15 @@ else:
     with open(filename) as f:
         content = f.read().splitlines()
 
-    for line in content:
-        vals = line.split("\t")
-        ovbVals.append(float(vals[0].strip()))
-        date = dt.strptime(vals[1].strip(), '%Y-%m-%d').date()
-        obvDates.append(date)
+check = True
+for line in content:
+    if "*****" in str(line):
+    	check = False
+    if check == True:
+    	vals = line.split("\t")
+    	ovbVals.append(float(vals[0].strip()))
+    	date = dt.strptime(vals[1].strip(), '%Y-%m-%d').date()
+    	obvDates.append(date)
 
 startDate = obvDates[0]
 endDate = obvDates[len(obvDates) - 1]
