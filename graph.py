@@ -8,6 +8,7 @@ import matplotlib.dates as mdates
 from mpl_finance import candlestick_ohlc
 from pylab import rcParams
 from datetime import datetime as dt
+
 rcParams['figure.figsize'] = 13, 7
 
 
@@ -18,7 +19,7 @@ filename = "data.txt"
 
 ovbVals = []
 obvDates = []
- 
+
 if not os.path.isfile(filename):
     print('File does not exist.')
 else:  
@@ -38,10 +39,14 @@ for line in content:
 startDate = obvDates[0]
 endDate = obvDates[len(obvDates) - 1]
 
+splitStartDate = str(startDate).split("-")
+start = dt(int(splitStartDate[0]),int(splitStartDate[1]), int(splitStartDate[2])) #starting date to print stock charts as well
+end = dt.today()
+#print(start)
 
 valArr = np.array(ovbVals)
 # print(valArr)
-
+#apple = web.DataReader("AAPL", "yahoo", start, end)
 
 minVal = np.amin(valArr)
 maxVal = np.amax(valArr)
