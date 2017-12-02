@@ -95,7 +95,7 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 	    			previousClose = close;
 	    			previousOBV = currentOBV;
 	    			
-	    			context.write(new Text(currentOBV + " "), new Text(date));    	    		
+	    			context.write(new Text(currentOBV + " " + close), new Text(date));    	    		
 	    		}
 	       }
 		   

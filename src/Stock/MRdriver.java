@@ -22,19 +22,18 @@ public class MRdriver extends Configured implements Tool {
     	String n = reader.next();
     	reader.close();
     	
-        // TODO 1: configure  MR job
-		Job job = new Job(getConf(), n); // "stocks" = string job name
+		Job job = new Job(getConf(), n);
 		job.setJarByClass(MRdriver.class);
 		job.setMapperClass(MRmapper.class);
 		job.setReducerClass(MRreducer.class);
-		job.setInputFormatClass(TextInputFormat.class); //files from plain txt files broken into lines
+		job.setInputFormatClass(TextInputFormat.class); 
 		job.setOutputKeyClass(Text.class);
 		job.setOutputValueClass(Text.class);
 		job.setMapOutputValueClass(Text.class);
-        // TODO 2: setup input and output paths for MR job
+
 		FileInputFormat.addInputPath(job, new Path(args[0]));
 		FileOutputFormat.setOutputPath(job, new Path(args[1]));
-        // TODO 3: run  MR job syncronously with verbose output set to true
+
 		return job.waitForCompletion(true) ? 0 : 1;
    }
 
