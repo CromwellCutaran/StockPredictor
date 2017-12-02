@@ -21,6 +21,7 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 	   public static String divider = "*****";
 	   public int i = 1;
 	   private ArrayList<ArrayList<Object>> allData = new ArrayList<ArrayList<Object>>();
+	   private double previousClose = 0, previousOBV = 0, currentOBV = 0;
 	   
 	   public void reduce(Text key, Iterable<Text> values, Context context) 
 			   throws IOException, InterruptedException {		   		   			   
@@ -41,8 +42,7 @@ public class MRreducer  extends Reducer <Text,Text,Text,Text> {
 		   
 		   String compositeString;
 		   String[] compositeStringArray;
-		   double total = 0, first = 0, last = 0, count = 0;
-		   double previousClose = 0, previousOBV = 0, currentOBV = 0;
+		   double total = 0, first = 0, last = 0, count = 0;		   
 		   
 		   // marker for calculating OBVs
 		   boolean start = true;		   
