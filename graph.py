@@ -19,6 +19,7 @@ filename = "data.txt"
 
 ovbVals = []
 obvDates = []
+closingPrice = []
 
 if not os.path.isfile(filename):
     print('File does not exist.')
@@ -31,10 +32,13 @@ for line in content:
     if "*****" in str(line):
     	check = False
     if check == True:
-    	vals = line.split("\t")
+    	print(line)
+    	vals = line.split()
+    	print(vals)
     	ovbVals.append(float(vals[0].strip()))
-    	date = dt.strptime(vals[1].strip(), '%Y-%m-%d').date()
+    	date = dt.strptime(vals[2].strip(), '%Y-%m-%d').date()
     	obvDates.append(date)
+    	closingPrice.append(float(vals[1].strip()))
 
 startDate = obvDates[0]
 endDate = obvDates[len(obvDates) - 1]
@@ -42,7 +46,7 @@ endDate = obvDates[len(obvDates) - 1]
 splitStartDate = str(startDate).split("-")
 start = dt(int(splitStartDate[0]),int(splitStartDate[1]), int(splitStartDate[2])) #starting date to print stock charts as well
 end = dt.today()
-#print(start)
+print(closingPrice[2])
 
 valArr = np.array(ovbVals)
 # print(valArr)
@@ -68,7 +72,7 @@ for i in valArr:
 
 
 
-def createChart(values, startDate, endDate, obvDates):
+def createChart(values, startDate, endDate, obvDates, yAxis):
 	# print(values, startDate, endDate)
 
 	years = mdates.YearLocator()    #standardize 
@@ -92,10 +96,11 @@ def createChart(values, startDate, endDate, obvDates):
 
 	ax.set_xlim(startDate, endDate)
 	ax.set_xlabel("({} - {})".format(startDate, endDate))
-	ax.set_ylabel("OBV")
+	ax.set_ylabel(yAxis)
 
 	fig.autofmt_xdate()
 	plt.show()
 
 
-createChart(valArr, startDate, endDate, obvDates)
+createChart(valArr, startDate, endDate, obvDates, "OBV")
+createChart(closingPrice, startDate, endDate, obvDates, "Price")
